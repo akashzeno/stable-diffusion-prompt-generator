@@ -1,29 +1,106 @@
 "use client";
 
-import componentsOfAPrompt from "@/data/components_of_a_prompt";
 import { useState, useEffect } from "react";
-
+import componentsOfAPrompt from "@/data/components_of_a_prompt";
+import CreatableSelect from "react-select/creatable";
+import { components } from "react-select";
+import Image from "next/image";
+import emotionOptions from "@/data/emotion_options";
 interface FormValues {
-	[key: string]: string; // This tells TypeScript that FormValues is an object with any number of properties, all of which are strings.
+	[key: string]: Array<{ label: string; value: string }>;
 }
 
+const customStyles = {
+	control: (provided) => ({
+		...provided,
+		backgroundColor: "#333", // Dark background for the control
+		borderColor: "#555", // Darker border for the control
+		color: "white", // Text color
+		boxShadow: "none", // Remove box-shadow
+	}),
+	menu: (provided) => ({
+		...provided,
+		backgroundColor: "#333", // Dark background for the dropdown menu
+	}),
+	option: (provided, state) => ({
+		...provided,
+		backgroundColor: state.isSelected ? "#555" : "#333", // Different background for selected and normal options
+		color: "white", // Text color for options
+		cursor: "pointer",
+		"&:hover": {
+			backgroundColor: "#555", // Background for hovering on options
+		},
+	}),
+	multiValue: (provided) => ({
+		...provided,
+		backgroundColor: "#555", // Background for tags
+	}),
+	multiValueLabel: (provided) => ({
+		...provided,
+		color: "white", // Text color for tags
+	}),
+	multiValueRemove: (provided) => ({
+		...provided,
+		color: "white", // Text color for the remove icon in tags
+		"&:hover": {
+			backgroundColor: "#666", // Background color when hovering over the remove icon
+			color: "red", // Text color when hovering over the remove icon
+		},
+	}),
+	input: (provided) => ({
+		...provided,
+		color: "white", // Text color for input
+	}),
+	placeholder: (provided) => ({
+		...provided,
+		color: "#aaa", // Placeholder color
+	}),
+	singleValue: (provided) => ({
+		...provided,
+		color: "white", // Text color for selected value
+	}),
+};
+
+const options = {
+	emotion: emotionOptions,
+};
+
+// Custom Option component to render images alongside text
+const Option = (props) => {
+	const { data } = props;
+	return (
+		<components.Option {...props}>
+			<div className="flex items-center justify-between">
+				{props.data.label}
+				{data?.image && (
+					<Image
+						src={data.image}
+						alt={data.label}
+						width={32}
+						height={32}
+						className="aspect-square object-cover"
+					/>
+				)}
+			</div>
+		</components.Option>
+	);
+};
+
 export default function Home() {
-	// Create a single state object to hold all form values
+	// Initialize state to hold all form values
 	const [formValues, setFormValues] = useState<FormValues>({});
 	const [generatedPrompt, setGeneratedPrompt] = useState("");
 
 	// Update the generated prompt whenever formValues change
 	useEffect(() => {
 		const promptParts = componentsOfAPrompt
-			.map(({ name }) => formValues[name])
+			.map(({ name }) => formValues[name]?.map((option) => option.value).join(", "))
 			.filter(Boolean);
 		setGeneratedPrompt(promptParts.join(", "));
 	}, [formValues]);
 
-	// Handle changes to any of the dynamically generated inputs
-	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const { name, value } = e.target;
-		setFormValues((prev) => ({ ...prev, [name]: value }));
+	const handleChange = (newValue, actionMeta, name) => {
+		setFormValues((prev) => ({ ...prev, [name]: newValue || [] }));
 	};
 
 	const handleCopy = () => {
@@ -67,28 +144,27 @@ export default function Home() {
 				</label>
 			</div>
 			<div className="grid sm:grid-cols-2 gap-4">
-				{componentsOfAPrompt.map(({ label, name, example, definition, guidance }) => (
+				{componentsOfAPrompt.map(({ label, name, definition, guidance, example }) => (
 					<div key={name}>
 						<label className="form-control w-full">
 							<div className="label">
 								<strong className="label-text">{label}?</strong>
 							</div>
-							<input
-								id={name}
-								name={name}
-								value={formValues[name] || ""}
-								type="text"
-								placeholder="Type here"
-								className="input input-bordered w-full"
-								onChange={handleChange}
+							<CreatableSelect
+								isMulti
+								styles={customStyles}
+								options={options[name] || []}
+								value={formValues[name] || []}
+								placeholder="Type or select options"
+								// className="input input-bordered w-full"
+								components={{ Option }}
+								onChange={(value, actionMeta) => handleChange(value, actionMeta, name)}
 							/>
 						</label>
 						<div className="label flex flex-col items-start gap-2">
-							{definition && (
-								<span className="label-text-alt">
-									<strong>Definition:</strong> {definition}
-								</span>
-							)}
+							<span className="label-text-alt">
+								<strong>Definition:</strong> {definition}
+							</span>
 							{guidance && (
 								<span className="label-text-alt">
 									<strong>Guidance:</strong> {guidance}
