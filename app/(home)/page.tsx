@@ -3,14 +3,41 @@
 import { useState, useEffect } from "react";
 import componentsOfAPrompt from "@/data/components_of_a_prompt";
 import CreatableSelect from "react-select/creatable";
+import type {
+	StylesConfig,
+	OptionProps,
+	MultiValue,
+	ActionMeta,
+	GroupBase,
+} from "react-select";
 import { components } from "react-select";
 import Image from "next/image";
 import emotionOptions from "@/data/emotion_options";
+
 interface FormValues {
 	[key: string]: Array<{ label: string; value: string }>;
 }
 
-const customStyles = {
+interface CustomOption {
+	label: string;
+	value: string;
+	image?: string; // Making 'image' optional
+}
+
+interface Option {
+	label: string;
+	value: string;
+}
+
+interface OptionsType {
+	[key: string]: Option[];
+}
+
+const customStyles: StylesConfig<
+	CustomOption,
+	true,
+	GroupBase<CustomOption>
+> = {
 	control: (provided) => ({
 		...provided,
 		backgroundColor: "#333", // Dark background for the control
@@ -61,18 +88,22 @@ const customStyles = {
 	}),
 };
 
-const options = {
-	emotion: emotionOptions,
+const options: OptionsType = {
+	emotion: emotionOptions, // Assuming emotionOptions is an array of Option
+	// You can add more key-value pairs here, matching the string to array of Option type.
 };
 
-// Custom Option component to render images alongside text
-const Option = (props) => {
+const Option = <
+	OptionType extends { label: string; value: string; image?: string }
+>(
+	props: OptionProps<OptionType, boolean, GroupBase<OptionType>>
+) => {
 	const { data } = props;
 	return (
 		<components.Option {...props}>
 			<div className="flex items-center justify-between">
-				{props.data.label}
-				{data?.image && (
+				{data.label}
+				{data.image && (
 					<Image
 						src={data.image}
 						alt={data.label}
@@ -99,8 +130,12 @@ export default function Home() {
 		setGeneratedPrompt(promptParts.join(", "));
 	}, [formValues]);
 
-	const handleChange = (newValue, actionMeta, name) => {
-		setFormValues((prev) => ({ ...prev, [name]: newValue || [] }));
+	const handleChange = (
+		newValue: MultiValue<{ label: string; value: string }>,
+		actionMeta: ActionMeta<{ label: string; value: string }>,
+		name: string
+	) => {
+		setFormValues((prev) => ({ ...prev, [name]: newValue ? [...newValue] : [] }));
 	};
 
 	const handleCopy = () => {
@@ -150,7 +185,7 @@ export default function Home() {
 							<div className="label">
 								<strong className="label-text">{label}?</strong>
 							</div>
-							<CreatableSelect
+							<CreatableSelect<CustomOption, true, GroupBase<CustomOption>>
 								isMulti
 								styles={customStyles}
 								options={options[name] || []}
