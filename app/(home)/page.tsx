@@ -1,43 +1,39 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import componentsOfAPrompt from "@/data/components_of_a_prompt";
-import CreatableSelect from "react-select/creatable";
 import type {
 	StylesConfig,
-	OptionProps,
-	MultiValue,
+	OptionProps as DefaultOptionProps,
 	ActionMeta,
 	GroupBase,
 } from "react-select";
+import { useState, useEffect } from "react";
+import componentsOfAPrompt from "@/data/components_of_a_prompt";
+import CreatableSelect from "react-select/creatable";
 import { components } from "react-select";
 import Image from "next/image";
 import emotionOptions from "@/data/emotion_options";
 
+interface OptionType {
+	value: string;
+	label: string;
+	type?: string;
+	image?: string;
+}
+
+interface OptionProps
+	extends DefaultOptionProps<OptionType, boolean, GroupBase<OptionType>> {
+	data: OptionType;
+}
+
 interface FormValues {
-	[key: string]: Array<{ label: string; value: string }>;
+	[key: string]: OptionType[];
 }
 
-interface CustomOption {
-	label: string;
-	value: string;
-	image?: string; // Making 'image' optional
+interface Options {
+	[key: string]: OptionType[];
 }
 
-interface Option {
-	label: string;
-	value: string;
-}
-
-interface OptionsType {
-	[key: string]: Option[];
-}
-
-const customStyles: StylesConfig<
-	CustomOption,
-	true,
-	GroupBase<CustomOption>
-> = {
+const customStyles: StylesConfig<OptionType, boolean, GroupBase<OptionType>> = {
 	control: (provided) => ({
 		...provided,
 		backgroundColor: "#333", // Dark background for the control
@@ -88,21 +84,17 @@ const customStyles: StylesConfig<
 	}),
 };
 
-const options: OptionsType = {
+const options: Options = {
 	emotion: emotionOptions, // Assuming emotionOptions is an array of Option
 	// You can add more key-value pairs here, matching the string to array of Option type.
 };
 
-const Option = <
-	OptionType extends { label: string; value: string; image?: string }
->(
-	props: OptionProps<OptionType, boolean, GroupBase<OptionType>>
-) => {
+const Option = (props: OptionProps) => {
 	const { data } = props;
 	return (
 		<components.Option {...props}>
 			<div className="flex items-center justify-between">
-				{data.label}
+				{data.label}|{data.type}
 				{data.image && (
 					<Image
 						src={data.image}
@@ -118,7 +110,6 @@ const Option = <
 };
 
 export default function Home() {
-	// Initialize state to hold all form values
 	const [formValues, setFormValues] = useState<FormValues>({});
 	const [generatedPrompt, setGeneratedPrompt] = useState("");
 
@@ -131,8 +122,8 @@ export default function Home() {
 	}, [formValues]);
 
 	const handleChange = (
-		newValue: MultiValue<{ label: string; value: string }>,
-		actionMeta: ActionMeta<{ label: string; value: string }>,
+		newValue: OptionType[] | null,
+		actionMeta: ActionMeta<OptionType>,
 		name: string
 	) => {
 		setFormValues((prev) => ({ ...prev, [name]: newValue ? [...newValue] : [] }));
@@ -185,7 +176,7 @@ export default function Home() {
 							<div className="label">
 								<strong className="label-text">{label}?</strong>
 							</div>
-							<CreatableSelect<CustomOption, true, GroupBase<CustomOption>>
+							<CreatableSelect
 								isMulti
 								styles={customStyles}
 								options={options[name] || []}
@@ -193,7 +184,13 @@ export default function Home() {
 								placeholder="Type or select options"
 								// className="input input-bordered w-full"
 								components={{ Option }}
-								onChange={(value, actionMeta) => handleChange(value, actionMeta, name)}
+								onChange={(newValue, actionMeta) =>
+									handleChange(
+										newValue as OptionType[],
+										actionMeta as ActionMeta<OptionType>,
+										name
+									)
+								}
 							/>
 						</label>
 						<div className="label flex flex-col items-start gap-2">
