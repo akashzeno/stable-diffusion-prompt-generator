@@ -94,7 +94,13 @@ const Option = (props: OptionProps) => {
 	return (
 		<components.Option {...props}>
 			<div className="flex items-center justify-between">
-				{data.label}|{data.type}
+				<div
+					className={`badge text-white ${
+						data.type === "Negative" ? "badge-error" : "badge-success"
+					}`}
+				>
+					{data.label}
+				</div>
 				{data.image && (
 					<Image
 						src={data.image}
