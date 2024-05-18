@@ -13,13 +13,17 @@ import { components } from "react-select";
 import Image from "next/image";
 import { emotionOptions } from "@/data/emotion_options";
 import { styleOptions } from "@/data/style_options";
-import { LuCopy } from "react-icons/lu";
+import { colorOptions } from "@/data/color_options";
+import { lightingOptions } from "@/data/lighting_options";
+import { perspectiveViewpointOptions } from "@/data/perspective_viewpoint_options";
+import CopyToClipboardButton from "@/components/Button/CopyToClipboardButton";
 
 interface OptionType {
 	value: string;
 	label: string;
 	type?: string;
 	image?: string;
+	color?: string;
 }
 
 interface OptionProps
@@ -93,6 +97,9 @@ const options: Options = {
 		label: option.name,
 		value: option.prompt,
 	})),
+	lighting: lightingOptions,
+	perspective_viewpoint: perspectiveViewpointOptions,
+	color: colorOptions,
 };
 
 const Option = (props: OptionProps) => {
@@ -107,6 +114,9 @@ const Option = (props: OptionProps) => {
 				>
 					{data.label}
 				</div>
+				{data.color && (
+					<div style={{ backgroundColor: data.color }} className="size-4 rounded-full" />
+				)}
 				{data.image && (
 					<Image
 						src={data.image}
@@ -141,28 +151,16 @@ export default function Home() {
 		setFormValues((prev) => ({ ...prev, [name]: newValue ? [...newValue] : [] }));
 	};
 
-	const handleCopy = () => {
-		navigator.clipboard
-			.writeText(generatedPrompt)
-			.then(() => {
-				alert("Prompt copied to clipboard!");
-			})
-			.catch((err) => {
-				console.error("Failed to copy text: ", err);
-			});
-	};
-
 	return (
 		<main className="p-4 flex flex-col gap-4 sm:p-24">
 			<div>
 				<label className="form-control w-full">
 					<div className="label">
 						<strong className="label-text">Generated Prompt:</strong>
-						<button type="button" title="Copy" aria-label="Copy" onClick={handleCopy}>
-							<LuCopy />
-						</button>
+						<CopyToClipboardButton text={generatedPrompt} />
 					</div>
 					<textarea
+						readOnly
 						id="generated_prompt"
 						name="generated_prompt"
 						placeholder="Generated Prompt"
