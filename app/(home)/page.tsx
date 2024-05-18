@@ -11,7 +11,9 @@ import componentsOfAPrompt from "@/data/components_of_a_prompt";
 import CreatableSelect from "react-select/creatable";
 import { components } from "react-select";
 import Image from "next/image";
-import emotionOptions from "@/data/emotion_options";
+import { emotionOptions } from "@/data/emotion_options";
+import { styleOptions } from "@/data/style_options";
+import { LuCopy } from "react-icons/lu";
 
 interface OptionType {
 	value: string;
@@ -85,8 +87,12 @@ const customStyles: StylesConfig<OptionType, boolean, GroupBase<OptionType>> = {
 };
 
 const options: Options = {
-	emotion: emotionOptions, // Assuming emotionOptions is an array of Option
-	// You can add more key-value pairs here, matching the string to array of Option type.
+	emotion: emotionOptions,
+	style: styleOptions.map((option) => ({
+		...option,
+		label: option.name,
+		value: option.prompt,
+	})),
 };
 
 const Option = (props: OptionProps) => {
@@ -152,27 +158,17 @@ export default function Home() {
 				<label className="form-control w-full">
 					<div className="label">
 						<strong className="label-text">Generated Prompt:</strong>
-					</div>
-					<div className="join">
-						<input
-							readOnly
-							id="generated_prompt"
-							name="generated_prompt"
-							type="text"
-							placeholder="Type here"
-							className="input join-item input-bordered w-full"
-							value={generatedPrompt}
-						/>
-						<button
-							type="button"
-							title="Copy"
-							aria-label="Copy"
-							className="btn btn-square join-item !px-8"
-							onClick={handleCopy}
-						>
-							Copy
+						<button type="button" title="Copy" aria-label="Copy" onClick={handleCopy}>
+							<LuCopy />
 						</button>
 					</div>
+					<textarea
+						id="generated_prompt"
+						name="generated_prompt"
+						placeholder="Generated Prompt"
+						className="textarea textarea-bordered w-full"
+						value={generatedPrompt}
+					/>
 				</label>
 			</div>
 			<div className="grid sm:grid-cols-2 gap-4">

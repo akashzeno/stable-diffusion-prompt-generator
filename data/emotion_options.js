@@ -1,4 +1,4 @@
-const emotionOptions = [
+export const emotionOptions = [
 	{ label: "Acceptance", value: "Acceptance", type: "Positive" },
 	{ label: "Admiration", value: "Admiration", type: "Positive" },
 	{ label: "Adoration", value: "Adoration", type: "Positive" },
@@ -414,5 +414,3 @@ const emotionOptions = [
 	{ label: "Zest", value: "Zest", type: "Positive" },
 	{ label: "Zestful", value: "Zestful", type: "Positive" },
 ];
-
-export default emotionOptions;
